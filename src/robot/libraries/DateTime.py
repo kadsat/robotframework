@@ -669,7 +669,7 @@ class Month(Enum):
         '''
         returns a timedelta object
         '''
-        DAYS = {
+        year_pattern = {
             Month.JANUARY   : 31,
             Month.FEBRUARY  : 28,
             Month.MARCH     : 31,
@@ -684,7 +684,12 @@ class Month(Enum):
             Month.DECEMBER  : 31,
         }
         rel_year , rel_month = months // 12, months % 12
-        rel_day = 'need to determine this'
-        __relative_date = None
+        rel_day = 0
+        if  isinstance(date, Date):
+            rel_day = min(date.datetime.day, year_pattern[date.datetime.month]) # need to correct this
+        elif isinstance(date, datetime.datetime):
+            pass
+        else:
+            raise Exception('date can only be an instance of Date or datetime.datetime')
         if months == 0:
             return timedelta(seconds=0)
