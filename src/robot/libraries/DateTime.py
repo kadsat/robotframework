@@ -305,6 +305,7 @@ Additionally, helper classes ``Date`` and ``Time`` can be used directly:
 """
 
 import datetime
+import calendar
 import sys
 import time
 from enum import Enum
@@ -427,6 +428,29 @@ def subtract_date_from_date(date1, date2, result_format='number',
     """
     time = Date(date1, date1_format) - Date(date2, date2_format)
     return time.convert(result_format, millis=not exclude_millis)
+
+
+def test_delta(cls, date: Date | datetime.datetime , months: int) -> datetime.timedelta:
+    '''
+    returns a timedelta object
+    Q - do we support negative months?
+    '''
+    if months == 0:
+        return datetime.timedelta(seconds=0)
+    rel_year , rel_month = months // 12, months % 12
+    rel_day = 0
+    if  isinstance(date, Date):
+        date = date.datetime
+    elif isinstance(date, datetime.datetime):
+        pass
+    else:
+        raise Exception('date can only be an instance of Date or datetime.datetime')
+    _, tgt_month_days = calendar.monthrange(rel_year,rel_month)
+    rel_day = min(
+        date.day, 
+        tgt_month_days
+    )
+    return date - datetime.datetime(month=rel_month,day=rel_day,year=rel_year)
 
 
 def add_time_to_date(date, time, result_format='timestamp',
@@ -649,47 +673,3 @@ class Time:
         if isinstance(other, Time):
             return Time(self.seconds - other.seconds)
         raise TypeError(f'Can only subtract Time from Time, got {type_name(other)}.')
-
-class Month(Enum):
-    JANUARY   = 1
-    FEBRUARY  = 2
-    MARCH     = 3
-    APRIL     = 4
-    MAY       = 5
-    JUNE      = 6
-    JULY      = 7
-    AUGUST    = 8
-    SEPTEMBER = 9
-    OCTOBER   = 10
-    NOVEMBER  = 11
-    DECEMBER  = 12
-
-    @classmethod
-    def delta(cls, date: Date | datetime.datetime , months: int) -> datetime.timedelta:
-        '''
-        returns a timedelta object
-        '''
-        year_pattern = {
-            Month.JANUARY   : 31,
-            Month.FEBRUARY  : 28,
-            Month.MARCH     : 31,
-            Month.APRIL     : 30,
-            Month.MAY       : 31,
-            Month.JUNE      : 30,
-            Month.JULY      : 31,
-            Month.AUGUST    : 31,
-            Month.SEPTEMBER : 30,
-            Month.OCTOBER   : 31,
-            Month.NOVEMBER  : 30,
-            Month.DECEMBER  : 31,
-        }
-        rel_year , rel_month = months // 12, months % 12
-        rel_day = 0
-        if  isinstance(date, Date):
-            rel_day = min(date.datetime.day, year_pattern[date.datetime.month]) # need to correct this
-        elif isinstance(date, datetime.datetime):
-            pass
-        else:
-            raise Exception('date can only be an instance of Date or datetime.datetime')
-        if months == 0:
-            return timedelta(seconds=0)
