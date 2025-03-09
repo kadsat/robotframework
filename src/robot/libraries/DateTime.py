@@ -306,6 +306,7 @@ Additionally, helper classes ``Date`` and ``Time`` can be used directly:
 
 import datetime
 import calendar
+import math
 import sys
 import time
 from enum import Enum
@@ -430,27 +431,25 @@ def subtract_date_from_date(date1, date2, result_format='number',
     return time.convert(result_format, millis=not exclude_millis)
 
 
-def test_delta(cls, date: Date | datetime.datetime , months: int) -> datetime.timedelta:
+def test_delta(date, months: int) -> datetime.timedelta:
     '''
     returns a timedelta object
     Q - do we support negative months?
     '''
     if months == 0:
         return datetime.timedelta(seconds=0)
-    rel_year , rel_month = months // 12, months % 12
-    rel_day = 0
-    if  isinstance(date, Date):
-        date = date.datetime
-    elif isinstance(date, datetime.datetime):
-        pass
-    else:
-        raise Exception('date can only be an instance of Date or datetime.datetime')
-    _, tgt_month_days = calendar.monthrange(rel_year,rel_month)
+    
+    day   = date.datetime.day
+    month = date.datetime.month
+    year  = date.datetime.year
+
+    rel_year , rel_month = int(months/12), int(math.remainder(months,12))
+    _, tgt_month_days = calendar.monthrange(year+rel_year,month+rel_month)
     rel_day = min(
-        date.day, 
+        day, 
         tgt_month_days
     )
-    return date - datetime.datetime(month=rel_month,day=rel_day,year=rel_year)
+    return Date(datetime.datetime(month=month +rel_month,day=rel_day,year=year + rel_year))
 
 
 def add_time_to_date(date, time, result_format='timestamp',
