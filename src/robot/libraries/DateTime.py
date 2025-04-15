@@ -431,25 +431,28 @@ def subtract_date_from_date(date1, date2, result_format='number',
     return time.convert(result_format, millis=not exclude_millis)
 
 
-def test_delta(date, months: int) -> datetime.timedelta:
+def add_months_to_a_date(
+        date : datetime.datetime, 
+        months: int
+    ) -> datetime.timedelta:
     '''
-    returns a timedelta object
-    Q - do we support negative months?
+    need to implement negative months
     '''
-    if months == 0:
-        return datetime.timedelta(seconds=0)
-    
-    day   = date.datetime.day
-    month = date.datetime.month
-    year  = date.datetime.year
+    day   = date.day
+    month = date.month
+    year  = date.year
 
     rel_year , rel_month = int(months/12), int(math.remainder(months,12))
-    _, tgt_month_days = calendar.monthrange(year+rel_year,month+rel_month)
+    _, max_days = calendar.monthrange(year+rel_year,month+rel_month)
     rel_day = min(
         day, 
-        tgt_month_days
+        max_days
     )
-    return Date(datetime.datetime(month=month +rel_month,day=rel_day,year=year + rel_year))
+    return datetime.datetime(
+        month= month +rel_month,
+        day= rel_day,
+        year= year + rel_year
+    )
 
 
 def add_time_to_date(date, time, result_format='timestamp',
