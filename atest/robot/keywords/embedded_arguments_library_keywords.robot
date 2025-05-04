@@ -44,8 +44,15 @@ Embedded Arguments as Variables
     File Should Contain        ${OUTFILE}    name="User \${42} Selects \${EMPTY} From Webshop"
     File Should Contain        ${OUTFILE}    owner="embedded_args_in_lk_1"
     File Should Contain        ${OUTFILE}    source_name="User \${user} Selects \${item} From Webshop"
-    File Should Contain        ${OUTFILE}    name="User \${name} Selects \${SPACE * 10} From Webshop"
+    File Should Contain        ${OUTFILE}    name="User \${name} Selects \${SPACE * 100}[:10] From Webshop"
     File Should Not Contain    ${OUTFILE}    source_name="Log"
+
+Embedded arguments as variables and other content
+    ${tc} =    Check Test Case    ${TEST NAME}
+    Check Keyword Data         ${tc[0]}      embedded_args_in_lk_1.User \${foo}\${EMPTY}\${bar} Selects \${foo}, \${bar} and \${zap} From Webshop    \${name}, \${item}
+
+Embedded arguments as variables containing characters in keyword name
+    Check Test Case    ${TEST NAME}
 
 Embedded Arguments as List And Dict Variables
     ${tc} =    Check Test Case    ${TEST NAME}
@@ -73,16 +80,19 @@ Grouping Custom Regexp
 Custom Regexp Matching Variables
     Check Test Case    ${TEST NAME}
 
+Custom regexp with inline Python evaluation
+    Check Test Case    ${TEST NAME}
+
 Non Matching Variable Is Accepted With Custom Regexp (But Not For Long)
     ${tc} =    Check Test Case    ${TEST NAME}
-    Check Log Message    ${tc.body[0][0]}
+    Check Log Message    ${tc[0, 0]}
     ...    Embedded argument 'x' got value 'foo' that does not match custom pattern 'bar'. The argument is still accepted, but this behavior will change in Robot Framework 8.0.    WARN
 
 Partially Matching Variable Is Accepted With Custom Regexp (But Not For Long)
     ${tc} =    Check Test Case    ${TEST NAME}
-    Check Log Message    ${tc.body[0][0]}
+    Check Log Message    ${tc[0, 0]}
     ...    Embedded argument 'x' got value 'ba' that does not match custom pattern 'bar'. The argument is still accepted, but this behavior will change in Robot Framework 8.0.    WARN
-    Check Log Message    ${tc.body[0][1]}
+    Check Log Message    ${tc[0, 1]}
     ...    Embedded argument 'y' got value 'zapzap' that does not match custom pattern '...'. The argument is still accepted, but this behavior will change in Robot Framework 8.0.    WARN
 
 Non String Variable Is Accepted With Custom Regexp

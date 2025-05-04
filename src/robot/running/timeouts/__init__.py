@@ -15,8 +15,8 @@
 
 import time
 
-from robot.utils import Sortable, secs_to_timestr, timestr_to_secs, WINDOWS
-from robot.errors import TimeoutError, DataError, FrameworkError
+from robot.errors import DataError, FrameworkError, TimeoutExceeded
+from robot.utils import secs_to_timestr, Sortable, timestr_to_secs, WINDOWS
 
 if WINDOWS:
     from .windows import Timeout
@@ -28,10 +28,10 @@ else:
 
 
 class _Timeout(Sortable):
-    type: str
+    kind: str
 
     def __init__(self, timeout=None, variables=None):
-        self.string = timeout or ''
+        self.string = timeout or ""
         self.secs = -1
         self.starttime = -1
         self.error = None
@@ -51,7 +51,7 @@ class _Timeout(Sortable):
             self.string = secs_to_timestr(self.secs)
         except (DataError, ValueError) as err:
             self.secs = 0.000001  # to make timeout active
-            self.error = ('Setting %s timeout failed: %s' % (self.type.lower(), err))
+            self.error = f"Setting {self.kind.lower()} timeout failed: {err}"
 
     def start(self):
         if self.secs > 0:
@@ -72,10 +72,12 @@ class _Timeout(Sortable):
         if self.error:
             raise DataError(self.error)
         if not self.active:
-            raise FrameworkError('Timeout is not active')
+            raise FrameworkError("Timeout is not active")
         timeout = self.time_left()
-        error = TimeoutError(self._timeout_error,
-                             test_timeout=isinstance(self, TestTimeout))
+        error = TimeoutExceeded(
+            self._timeout_error,
+            test_timeout=self.kind != "KEYWORD",
+        )
         if timeout <= 0:
             raise error
         executable = lambda: runnable(*(args or ()), **(kwargs or {}))
@@ -83,21 +85,23 @@ class _Timeout(Sortable):
 
     def get_message(self):
         if not self.active:
-            return '%s timeout not active.' % self.type
+            return f"{self.kind.title()} timeout not active."
         if not self.timed_out():
-            return '%s timeout %s active. %s seconds left.' \
-                % (self.type, self.string, self.time_left())
+            return (
+                f"{self.kind.title()} timeout {self.string} active. "
+                f"{self.time_left()} seconds left."
+            )
         return self._timeout_error
 
     @property
     def _timeout_error(self):
-        return '%s timeout %s exceeded.' % (self.type, self.string)
+        return f"{self.kind.title()} timeout {self.string} exceeded."
 
     def __str__(self):
         return self.string
 
     def __bool__(self):
-        return bool(self.string and self.string.upper() != 'NONE')
+        return bool(self.string and self.string.upper() != "NONE")
 
     @property
     def _sort_key(self):
@@ -111,12 +115,11 @@ class _Timeout(Sortable):
 
 
 class TestTimeout(_Timeout):
-    type = 'Test'
+    kind = "TEST"
     _keyword_timeout_occurred = False
 
     def __init__(self, timeout=None, variables=None, rpa=False):
-        if rpa:
-            self.type = 'Task'
+        self.kind = "TASK" if rpa else self.kind
         super().__init__(timeout, variables)
 
     def set_keyword_timeout(self, timeout_occurred):
@@ -128,4 +131,4 @@ class TestTimeout(_Timeout):
 
 
 class KeywordTimeout(_Timeout):
-    type = 'Keyword'
+    kind = "KEYWORD"
