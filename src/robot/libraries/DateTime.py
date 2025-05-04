@@ -307,6 +307,7 @@ Additionally, helper classes ``Date`` and ``Time`` can be used directly:
 import datetime
 import sys
 import time
+import calendar
 
 from robot.utils import (
     elapsed_time_to_string, secs_to_timestr, timestr_to_secs, type_name
@@ -506,6 +507,27 @@ def subtract_time_from_date(
     date = Date(date, date_format) - Time(time)
     return date.convert(result_format, millis=not exclude_millis)
 
+def add_months_to_date(
+        date , 
+        months,
+        result_format="timestamp",
+        exclude_millis=False,
+        date_format=None,
+    ):
+    ''' Adds a month in integer format
+
+    Arguments:
+    - ``time``          Base time on which a month can either be added or subtracted
+    - ``months``        Integer representing the month to be added or subtracted
+
+    Examples:
+    | ${time} =       | Subtract Time From Time | 00:02:30 | 100      |
+    | Should Be Equal | ${time}                 | ${50}    |
+    | ${time} =       | Subtract Time From Time | ${time}  | 1 minute | compact |
+    | Should Be Equal | ${time}                 | - 10s    |
+    '''
+    date = Date(date, date_format)._add_months_to_a_date(months)
+    return date.convert(result_format, millis=not exclude_millis)
 
 def add_time_to_time(time1, time2, result_format="number", exclude_millis=False):
     """Adds time to another time and returns the resulting time.
@@ -635,6 +657,32 @@ class Date:
             f"Can only subtract Date or Time from Date, got {type_name(other)}."
         )
 
+    def _add_months_to_a_date(self,months):
+        '''
+        date can be in datetime format
+        months can be in any integer
+        '''
+        day   = self.datetime.day
+        month = self.datetime.month
+        year  = self.datetime.year
+
+        rel_year , rel_month = divmod(months + month, 12)
+
+        # handling edge case
+        if rel_month == 0:
+            rel_year  -= 1
+            rel_month  = 12
+
+        _, max_days = calendar.monthrange(year+rel_year,rel_month)
+        rel_day = min(
+            day, 
+            max_days
+        )
+        return Date(datetime(
+            month= rel_month,
+            day= rel_day,
+            year= year + rel_year
+        ))
 
 class Time:
 
