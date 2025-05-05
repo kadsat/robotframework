@@ -309,11 +309,7 @@ import calendar
 import math
 import sys
 import time
-<<<<<<< HEAD
-from enum import Enum
-=======
 import calendar
->>>>>>> master
 
 from robot.utils import (
     elapsed_time_to_string, secs_to_timestr, timestr_to_secs, type_name
@@ -456,34 +452,6 @@ def subtract_date_from_date(
     return time.convert(result_format, millis=not exclude_millis)
 
 
-<<<<<<< HEAD
-def add_months_to_a_date(
-        date : datetime.datetime, 
-        months: int
-    ) -> datetime.timedelta:
-    '''
-    need to implement negative months
-    '''
-    day   = date.day
-    month = date.month
-    year  = date.year
-
-    rel_year , rel_month = int(months/12), int(math.remainder(months,12))
-    _, max_days = calendar.monthrange(year+rel_year,month+rel_month)
-    rel_day = min(
-        day, 
-        max_days
-    )
-    return datetime.datetime(
-        month= month +rel_month,
-        day= rel_day,
-        year= year + rel_year
-    )
-
-
-def add_time_to_date(date, time, result_format='timestamp',
-                     exclude_millis=False, date_format=None):
-=======
 def add_time_to_date(
     date,
     time,
@@ -491,7 +459,6 @@ def add_time_to_date(
     exclude_millis=False,
     date_format=None,
 ):
->>>>>>> master
     """Adds time to date and returns the resulting date.
 
     Arguments:
@@ -764,8 +731,4 @@ class Time:
     def __sub__(self, other):
         if isinstance(other, Time):
             return Time(self.seconds - other.seconds)
-<<<<<<< HEAD
-        raise TypeError(f'Can only subtract Time from Time, got {type_name(other)}.')
-=======
         raise TypeError(f"Can only subtract Time from Time, got {type_name(other)}.")
->>>>>>> master
